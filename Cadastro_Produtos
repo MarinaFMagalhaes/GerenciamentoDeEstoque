@@ -1,0 +1,98 @@
+#Cadastro de produtos
+import sqlite3
+import tkinter as tk
+from tkinter import messagebox
+
+class CadastroProduto:
+    def __init__(self, produto_id, nome, tipo, preco, quantidade):
+        self.produto_id = produto_id
+        self.nome = nome
+        self.tipo = tipo
+        self.preco = preco
+        self.quantidade = quantidade
+
+class GerenciadorLoja(CadastroProduto):
+    def __init__(self):
+        self.produtos = []
+
+    def cadastrar_produto(self, produto):
+        self.produtos.append(produto)
+
+    def salvar_no_banco(self):
+        conn = sqlite3.connect('loja.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS produtos
+                     (id INTEGER PRIMARY KEY,
+                      nome TEXT,
+                      tipo TEXT,
+                      preco REAL,
+                      quantidade INTEGER)''')
+        for produto in self.produtos:
+            c.execute("INSERT INTO produtos VALUES (?, ?, ?, ?, ?, ?)", (produto.produto_id, produto.nome, produto.tipo, produto.preco, produto.quantidade))
+        conn.commit()
+        conn.close()
+
+    def listar_produtos(self):
+        for produto in self.produtos:
+            print("ID:", produto.produto_id)
+            print("Nome:", produto.nome)
+            print("Tipo:", produto.tipo)
+            print("Preço:", produto.preco)
+            print("Quantidade:", produto.quantidade)
+            print()
+
+def cadastrar_produto():
+    produto_id = id_entry.get()
+    nome = nome_entry.get()
+    tipo = tipo_entry.get()
+    preco = preco_entry.get()
+    quantidade = quantidade_entry.get()
+
+    try:
+        produto_id = int(produto_id)
+        preco = float(preco)
+        quantidade = int(quantidade)
+    except ValueError:
+        messagebox.showerror("Erro", "Por favor, insira valores numéricos para ID, preço e quantidade.")
+        return
+
+    produto = CadastroProduto(produto_id, nome, tipo, preco, quantidade)
+    gerenciador.cadastrar_produto(produto)
+    gerenciador.salvar_no_banco()
+    messagebox.showinfo("Sucesso", "Produto cadastrado com sucesso!")
+
+# Interface gráfica
+root = tk.Tk()
+root.title("Cadastro de Produtos")
+
+id_label = tk.Label(root, text="ID:")
+id_label.grid(row=0, column=0)
+id_entry = tk.Entry(root)
+id_entry.grid(row=0, column=1)
+
+nome_label = tk.Label(root, text="Nome:")
+nome_label.grid(row=1, column=0)
+nome_entry = tk.Entry(root)
+nome_entry.grid(row=1, column=1)
+
+tipo_label = tk.Label(root, text="Tipo:")
+tipo_label.grid(row=2, column=0)
+tipo_entry = tk.Entry(root)
+tipo_entry.grid(row=2, column=1)
+
+preco_label = tk.Label(root, text="Preço:")
+preco_label.grid(row=3, column=0)
+preco_entry = tk.Entry(root)
+preco_entry.grid(row=3, column=1)
+
+quantidade_label = tk.Label(root, text="Quantidade:")
+quantidade_label.grid(row=4, column=0)
+quantidade_entry = tk.Entry(root)
+quantidade_entry.grid(row=4, column=1)
+
+cadastrar_button = tk.Button(root, text="Cadastrar Produto", command=cadastrar_produto)
+cadastrar_button.grid(row=5, column=0, columnspan=2)
+
+gerenciador = GerenciadorLoja()
+
+root.mainloop()
